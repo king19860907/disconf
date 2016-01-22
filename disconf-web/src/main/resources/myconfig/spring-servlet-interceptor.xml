@@ -23,6 +23,11 @@
                 </property>
                 <property name="notInterceptPathList">
                     <list>
+                    	<value>html</value>
+                    	<value>css</value>
+                    	<value>js</value>
+                    	<value>png</value>
+                    	<value>jpg</value>
                         <value>/api/account/signin</value>
                         <value>/api/zoo/hosts</value>
                         <value>/api/zoo/prefix</value>
