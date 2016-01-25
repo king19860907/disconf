@@ -8,6 +8,40 @@
            http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
+	
+	<bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
+	      destroy-method="destroy">
+	    <property name="scanPackage" value="com.majun"/>
+	</bean>
+	<bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
+	      init-method="init" destroy-method="destroy">
+	</bean>
+	
+	<context:component-scan base-package="com.majun"/>
+	
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <bean id="configproperties_disconf"
+      class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean">
+	    <property name="locations">
+	        <list>
+	            <value>classpath:/test.properties</value>
+	        </list>
+	    </property>
+	</bean>
+	
+	<bean id="propertyConfigurer"
+	      class="com.baidu.disconf.client.addons.properties.ReloadingPropertyPlaceholderConfigurer">
+	    <property name="ignoreResourceNotFound" value="true" />
+	    <property name="ignoreUnresolvablePlaceholders" value="true" />
+	    <property name="propertiesArray">
+	        <list>
+	            <ref bean="configproperties_disconf"/>
+	        </list>
+	    </property>
+	</bean>
+
+	<!-- 
 	<bean id="propertyConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -16,6 +50,7 @@
 			</list>
 		</property>
 	</bean>
+	 -->
 
 	<bean id="channelService" class="com.majun.service.impl.ChannelServiceImpl">
 		<property name="channelId" value="${com.yesmynet.channel}" />

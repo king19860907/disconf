@@ -36,6 +36,11 @@
 			<artifactId>spring-core</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.baidu.disconf</groupId>
+		    <artifactId>disconf-client</artifactId>
+		    <version>2.6.31</version>
+		</dependency>
 	</dependencies>
 
 </project>
