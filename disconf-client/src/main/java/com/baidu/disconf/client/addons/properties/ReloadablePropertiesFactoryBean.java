@@ -14,6 +14,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -70,11 +72,12 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
             //
             String ext = FilenameUtils.getExtension(filename);
             if (ext.equals("properties")) {
-
+            	PropertyResolver propertyResolver = new StandardEnvironment();
+            	String newFileName = propertyResolver.resolvePlaceholders(filename);
                 PathMatchingResourcePatternResolver pathMatchingResourcePatternResolver =
                         new PathMatchingResourcePatternResolver();
                 try {
-                    Resource[] resourceList = pathMatchingResourcePatternResolver.getResources(filename);
+                    Resource[] resourceList = pathMatchingResourcePatternResolver.getResources(newFileName);
                     for (Resource resource : resourceList) {
                         resources.add(resource);
                     }
