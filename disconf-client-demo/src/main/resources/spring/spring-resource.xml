@@ -55,5 +55,13 @@
 	<bean id="channelService" class="com.majun.service.impl.ChannelServiceImpl">
 		<property name="channelId" value="${com.yesmynet.channel}" />
 	</bean>
+	
+	<bean id="channelWrapperService" class="com.majun.service.impl.ChannelWrapperServiceImpl">
+		<property name="channelService">
+			<bean class="com.majun.service.impl.ChannelServiceImpl">
+				<property name="channelId" value="${com.yesmynet.channel2}" />
+			</bean>
+		</property>
+	</bean>
 
 </beans>   
