@@ -1,5 +1,7 @@
 package com.baidu.disconf.web.web.config.dto;
 
+import java.util.List;
+
 import com.baidu.disconf.web.service.app.bo.App;
 import com.baidu.disconf.web.service.env.bo.Env;
 
@@ -9,7 +11,7 @@ import com.baidu.disconf.web.service.env.bo.Env;
  */
 public class ConfigFullModel {
 
-    private App app;
+    private List<App> apps;
     private Env env;
     private String version;
     private String key;
@@ -22,15 +24,15 @@ public class ConfigFullModel {
         this.key = key;
     }
 
-    public App getApp() {
-        return app;
-    }
+	public List<App> getApps() {
+		return apps;
+	}
 
-    public void setApp(App app) {
-        this.app = app;
-    }
+	public void setApps(List<App> apps) {
+		this.apps = apps;
+	}
 
-    public Env getEnv() {
+	public Env getEnv() {
         return env;
     }
 
@@ -46,9 +48,9 @@ public class ConfigFullModel {
         this.version = version;
     }
 
-    public ConfigFullModel(App app, Env env, String version, String key) {
+    public ConfigFullModel(List<App> apps, Env env, String version, String key) {
         super();
-        this.app = app;
+        this.apps = apps;
         this.env = env;
         this.version = version;
         this.key = key;

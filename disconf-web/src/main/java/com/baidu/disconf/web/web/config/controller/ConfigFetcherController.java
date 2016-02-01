@@ -2,6 +2,7 @@ package com.baidu.disconf.web.web.config.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -72,7 +74,7 @@ public class ConfigFetcherController {
             return ConfigUtils.getErrorVo(e.getMessage());
         }
 
-        return configFetchMgr.getConfItemByParameter(configModel.getApp().getId(), configModel.getEnv().getId(),
+        return configFetchMgr.getConfItemByParameter(configModel.getApps().get(0).getId(), configModel.getEnv().getId(),
                 configModel.getVersion(), configModel.getKey());
     }
 
@@ -102,16 +104,16 @@ public class ConfigFetcherController {
         if (hasError == false) {
             try {
                 //
-                Config config = configFetchMgr
-                        .getConfByParameter(configModel.getApp().getId(), configModel.getEnv().getId(),
+                List<Config> configs = configFetchMgr
+                        .getConfByParameter(configModel.getApps(), configModel.getEnv().getId(),
                                 configModel.getVersion(), configModel.getKey(),
                                 DisConfigTypeEnum.FILE);
-                if (config == null) {
+                if (CollectionUtils.isEmpty(configs)) {
                     hasError = true;
                     throw new DocumentNotFoundException(configModel.getKey());
                 }
 
-                return downloadDspBill(configModel.getKey(), config.getValue());
+                return downloadDspBill(configModel.getKey(), configs);
 
             } catch (Exception e) {
                 LOG.error(e.toString());
@@ -132,8 +134,11 @@ public class ConfigFetcherController {
      *
      * @return
      */
-    public HttpEntity<byte[]> downloadDspBill(String fileName, String value) {
-
+    public HttpEntity<byte[]> downloadDspBill(String fileName, List<Config> configs) {
+    	String value = "";
+    	for(Config config : configs){
+    		value = value + config.getValue()+"\n";
+    	}
         HttpHeaders header = new HttpHeaders();
         byte[] res = value.getBytes();
 

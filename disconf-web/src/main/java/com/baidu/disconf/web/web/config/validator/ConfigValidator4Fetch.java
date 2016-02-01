@@ -1,8 +1,12 @@
 package com.baidu.disconf.web.web.config.validator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.baidu.disconf.web.service.app.bo.App;
 import com.baidu.disconf.web.service.app.service.AppMgr;
@@ -41,8 +45,15 @@ public class ConfigValidator4Fetch {
             throw new Exception("app is empty");
         }
 
-        App app = appMgr.getByName(confForm.getApp());
-        if (app == null) {
+        String[] appNames = confForm.getApp().split(",");
+        List<App> apps = new ArrayList<App>();
+        for(String appName : appNames){
+        	App app = appMgr.getByName(appName);
+        	if(app != null){
+        		apps.add(app);
+        	}
+        }
+        if (CollectionUtils.isEmpty(apps)) {
             throw new Exception("app " + confForm.getApp() + " doesn't exist in db.");
         }
 
@@ -72,6 +83,6 @@ public class ConfigValidator4Fetch {
             throw new Exception("version is empty");
         }
 
-        return new ConfigFullModel(app, env, confForm.getVersion(), confForm.getKey());
+        return new ConfigFullModel(apps, env, confForm.getVersion(), confForm.getKey());
     }
 }

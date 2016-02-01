@@ -11,6 +11,7 @@ import com.baidu.disconf.web.service.env.service.EnvMgr;
 import com.baidu.disconf.web.service.zookeeper.form.ZkDeployForm;
 import com.baidu.disconf.web.web.config.dto.ConfigFullModel;
 import com.baidu.dsp.common.exception.FieldException;
+import com.google.common.collect.Lists;
 
 /**
  * @author liaoqiqi
@@ -63,6 +64,6 @@ public class ZkDeployValidator {
             throw new FieldException("version is empty", null);
         }
 
-        return new ConfigFullModel(app, env, zkDeployForm.getVersion(), "");
+        return new ConfigFullModel(Lists.newArrayList(app), env, zkDeployForm.getVersion(), "");
     }
 }
