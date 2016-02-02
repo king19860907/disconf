@@ -77,7 +77,32 @@ public class ConfigFetcherController {
         return configFetchMgr.getConfItemByParameter(configModel.getApps().get(0).getId(), configModel.getEnv().getId(),
                 configModel.getVersion(), configModel.getKey());
     }
-
+    
+    /**
+     * 配置是否存在
+     * @param confForm
+     * @return
+     */
+    @NoAuth
+    @RequestMapping(value = "/fileExists", method = RequestMethod.GET)
+    @ResponseBody
+    public ValueVo fileExists(ConfForm confForm){
+    	ValueVo value = new ValueVo();
+    	try{
+    		getFile(confForm);
+    	}catch(DocumentNotFoundException e){
+    		 LOG.error(e.toString());
+    		 value.setValue("false");
+    		 return value;
+    	}catch(Exception e1){
+    		LOG.error(e1.toString(),e1);
+    		 value.setValue("false");
+    		 return value;
+    	}
+    	value.setValue("true");
+    	return value;
+    }
+    
     /**
      * 获取配置文件
      *
@@ -110,7 +135,7 @@ public class ConfigFetcherController {
                                 DisConfigTypeEnum.FILE);
                 if (CollectionUtils.isEmpty(configs)) {
                     hasError = true;
-                    throw new DocumentNotFoundException(configModel.getKey());
+                    throw new DocumentNotFoundException(configModel.getApps()+" "+configModel.getEnv()+" "+configModel.getVersion()+" "+configModel.getKey());
                 }
 
                 return downloadDspBill(configModel.getKey(), configs);
@@ -121,7 +146,7 @@ public class ConfigFetcherController {
         }
 
         if (confForm.getKey() != null) {
-            throw new DocumentNotFoundException(confForm.getKey());
+            throw new DocumentNotFoundException(configModel.getApps()+" "+configModel.getEnv()+" "+configModel.getVersion()+" "+configModel.getKey());
         } else {
             throw new DocumentNotFoundException("");
         }
