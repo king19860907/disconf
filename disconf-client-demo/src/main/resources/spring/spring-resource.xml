@@ -11,28 +11,23 @@
 	
 	<bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
 	      destroy-method="destroy">
-	    <property name="scanPackage" value="com.majun"/>
 	</bean>
 	<bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
 	      init-method="init" destroy-method="destroy">
 	</bean>
-	
-	<context:component-scan base-package="com.majun"/>
-	
-	<aop:aspectj-autoproxy proxy-target-class="true"/>
 
     <bean id="configproperties_disconf"
       class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean">
 	    <property name="locations">
 	        <list>
-	           <value>file:${config.path}/config/test.properties</value>
+	           <value>file:${config.path}/config/public.properties</value>
 	        </list>
 	    </property>
 	</bean>
 	
 	
 	<bean id="propertyConfigurer"
-	      class="com.baidu.disconf.client.addons.properties.ReloadingPropertyPlaceholderConfigurer">
+	      class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="ignoreResourceNotFound" value="true" />
 	    <property name="ignoreUnresolvablePlaceholders" value="true" />
 	    <property name="propertiesArray">
@@ -53,13 +48,13 @@
 	 -->
 
 	<bean id="channelService" class="com.majun.service.impl.ChannelServiceImpl">
-		<property name="channelId" value="${com.yesmynet.channel}" />
+		<property name="channelId" value="${com.yesmywine.com}" />
 	</bean>
 	
 	<bean id="channelWrapperService" class="com.majun.service.impl.ChannelWrapperServiceImpl">
 		<property name="channelService">
 			<bean class="com.majun.service.impl.ChannelServiceImpl">
-				<property name="channelId" value="${com.yesmynet.channel2}" />
+				<property name="channelId" value="${com.yesmywine.com}" />
 			</bean>
 		</property>
 	</bean>

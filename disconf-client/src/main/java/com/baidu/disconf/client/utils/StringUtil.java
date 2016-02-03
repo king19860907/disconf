@@ -77,12 +77,11 @@ public abstract class StringUtil {
      */
     public static List<String> parseStringToStringList(String source,
                                                        String token) {
-
+    	List<String> result = new ArrayList<String>();
         if (StringUtils.isBlank(source) || StringUtils.isEmpty(token)) {
-            return null;
+            return result;
         }
 
-        List<String> result = new ArrayList<String>();
 
         String[] units = source.split(token);
         for (String unit : units) {
