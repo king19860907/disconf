@@ -3,6 +3,8 @@ package com.baidu.disconf.core.common.path;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.baidu.disconf.core.common.constants.Constants;
 import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
 
@@ -17,6 +19,40 @@ public class DisconfWebPathMgr {
     public DisconfWebPathMgr() {
 
     }
+    
+    public static String getRemoteUrlParameter(String urlPrefix,String app,String version,String env,String key,DisConfigTypeEnum disConfigTypeEnum,String action){
+    	 Map<String, String> parameterMap = getConfServerBasePathMap(app, version, env, key);
+         
+         // 配置文件或配置项
+         parameterMap.put(Constants.TYPE, String.valueOf(disConfigTypeEnum.getType()));
+
+         StringBuffer sb = new StringBuffer();
+         sb.append(urlPrefix);
+
+         if(StringUtils.isEmpty(action)){
+         	if (disConfigTypeEnum.getType() == DisConfigTypeEnum.FILE.getType()) {
+                 sb.append(Constants.SEP_STRING + Constants.STORE_FILE_URL_KEY);
+             } else {
+                 sb.append(Constants.SEP_STRING + Constants.STORE_ITEM_URL_KEY);
+             }
+         }else{
+        	 sb.append(Constants.SEP_STRING+action);
+         }
+
+         sb.append("?");
+         for (String thisKey : parameterMap.keySet()) {
+
+             String cur = thisKey + "=" + parameterMap.get(thisKey);
+             cur += "&";
+             sb.append(cur);
+         }
+
+         if (sb.length() > 0) {
+             sb.deleteCharAt(sb.length() - 1);
+         }
+
+         return sb.toString();
+    }
 
     /**
      * 获取 配置项 或者 是配置ITEM 的远程URL
@@ -26,33 +62,7 @@ public class DisconfWebPathMgr {
     public static String getRemoteUrlParameter(String urlPrefix, String app, String version, String env, String key,
                                                DisConfigTypeEnum disConfigTypeEnum) {
 
-        Map<String, String> parameterMap = getConfServerBasePathMap(app, version, env, key);
-
-        // 配置文件或配置项
-        parameterMap.put(Constants.TYPE, String.valueOf(disConfigTypeEnum.getType()));
-
-        StringBuffer sb = new StringBuffer();
-        sb.append(urlPrefix);
-
-        if (disConfigTypeEnum.getType() == DisConfigTypeEnum.FILE.getType()) {
-            sb.append(Constants.SEP_STRING + Constants.STORE_FILE_URL_KEY);
-        } else {
-            sb.append(Constants.SEP_STRING + Constants.STORE_ITEM_URL_KEY);
-        }
-
-        sb.append("?");
-        for (String thisKey : parameterMap.keySet()) {
-
-            String cur = thisKey + "=" + parameterMap.get(thisKey);
-            cur += "&";
-            sb.append(cur);
-        }
-
-        if (sb.length() > 0) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-
-        return sb.toString();
+    	return getRemoteUrlParameter(urlPrefix,app,version,env,key,disConfigTypeEnum,null);
     }
 
     /**

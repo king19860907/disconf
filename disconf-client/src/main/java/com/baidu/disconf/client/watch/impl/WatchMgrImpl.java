@@ -1,17 +1,28 @@
 package com.baidu.disconf.client.watch.impl;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.baidu.disconf.client.common.model.DisConfCommonModel;
+import com.baidu.disconf.client.config.DisClientConfig;
+import com.baidu.disconf.client.config.DisClientSysConfig;
 import com.baidu.disconf.client.config.inner.DisClientComConfig;
 import com.baidu.disconf.client.core.processor.DisconfCoreProcessor;
+import com.baidu.disconf.client.fetcher.FetcherFactory;
 import com.baidu.disconf.client.watch.WatchMgr;
 import com.baidu.disconf.client.watch.inner.DisconfSysUpdateCallback;
 import com.baidu.disconf.client.watch.inner.NodeWatcher;
 import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
+import com.baidu.disconf.core.common.path.DisconfWebPathMgr;
 import com.baidu.disconf.core.common.path.ZooPathMgr;
+import com.baidu.disconf.core.common.restful.RestfulFactory;
+import com.baidu.disconf.core.common.restful.core.RemoteUrl;
+import com.baidu.disconf.core.common.restful.retry.RetryStrategy;
 import com.baidu.disconf.core.common.utils.ZooUtils;
 import com.baidu.disconf.core.common.zookeeper.ZookeeperMgr;
 
@@ -52,43 +63,72 @@ public class WatchMgrImpl implements WatchMgr {
      *
      * @throws Exception
      */
-    private String makeMonitorPath(DisConfigTypeEnum disConfigTypeEnum, DisConfCommonModel disConfCommonModel,
+    private List<String> makeMonitorPath(DisConfigTypeEnum disConfigTypeEnum, DisConfCommonModel disConfCommonModel,
                                    String key, String value) throws Exception {
+    	
+    	
+    	List<String> apps = disConfCommonModel.getApps();
+    	List<String> monitorPaths = new ArrayList<String>();
+    	for(String app : apps){
+    		if(!isFileExists(app,key,disConfCommonModel)){
+    			continue;
+    		}
+    		  // 应用根目录
+            /*
+                应用程序的 Zoo 根目录
+            */
+            String clientRootZooPath = ZooPathMgr.getZooBaseUrl(zooUrlPrefix, app,
+                    disConfCommonModel.getEnv(),
+                    disConfCommonModel.getVersion());
+            ZookeeperMgr.getInstance().makeDir(clientRootZooPath, ZooUtils.getIp());
 
-        // 应用根目录
-        /*
-            应用程序的 Zoo 根目录
-        */
-        String clientRootZooPath = ZooPathMgr.getZooBaseUrl(zooUrlPrefix, disConfCommonModel.getApp(),
+            // 监控路径
+            String monitorPath;
+            if (disConfigTypeEnum.equals(DisConfigTypeEnum.FILE)) {
+
+                // 新建Zoo Store目录
+                String clientDisconfFileZooPath = ZooPathMgr.getFileZooPath(clientRootZooPath);
+                makePath(clientDisconfFileZooPath, ZooUtils.getIp());
+
+                monitorPath = ZooPathMgr.joinPath(clientDisconfFileZooPath, key);
+
+            } else {
+
+                // 新建Zoo Store目录
+                String clientDisconfItemZooPath = ZooPathMgr.getItemZooPath(clientRootZooPath);
+                makePath(clientDisconfItemZooPath, ZooUtils.getIp());
+                monitorPath = ZooPathMgr.joinPath(clientDisconfItemZooPath, key);
+            }
+
+            // 先新建路径
+            makePath(monitorPath, "");
+
+            // 新建一个代表自己的临时结点
+            makeTempChildPath(monitorPath, value);
+            monitorPaths.add(monitorPath);
+    	}
+    	
+        return monitorPaths;
+    }
+    
+    private boolean isFileExists(String app,String fileName,DisConfCommonModel disConfCommonModel){
+    	String url = DisconfWebPathMgr.getRemoteUrlParameter(DisClientSysConfig.getInstance().CONF_SERVER_STORE_ACTION,
+                app,
+                disConfCommonModel.getVersion(),
                 disConfCommonModel.getEnv(),
-                disConfCommonModel.getVersion());
-        ZookeeperMgr.getInstance().makeDir(clientRootZooPath, ZooUtils.getIp());
-
-        // 监控路径
-        String monitorPath;
-        if (disConfigTypeEnum.equals(DisConfigTypeEnum.FILE)) {
-
-            // 新建Zoo Store目录
-            String clientDisconfFileZooPath = ZooPathMgr.getFileZooPath(clientRootZooPath);
-            makePath(clientDisconfFileZooPath, ZooUtils.getIp());
-
-            monitorPath = ZooPathMgr.joinPath(clientDisconfFileZooPath, key);
-
-        } else {
-
-            // 新建Zoo Store目录
-            String clientDisconfItemZooPath = ZooPathMgr.getItemZooPath(clientRootZooPath);
-            makePath(clientDisconfItemZooPath, ZooUtils.getIp());
-            monitorPath = ZooPathMgr.joinPath(clientDisconfItemZooPath, key);
-        }
-
-        // 先新建路径
-        makePath(monitorPath, "");
-
-        // 新建一个代表自己的临时结点
-        makeTempChildPath(monitorPath, value);
-
-        return monitorPath;
+                fileName,
+                DisConfigTypeEnum.FILE,"fileExists");
+    	try {
+			String result = FetcherFactory.getFetcherMgr().getValueFromServer(url);
+			if("true".equals(result)){
+				return true;
+			}else{
+				return false;
+			}
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(),e);
+			return false;
+		}
     }
 
     /**
@@ -121,13 +161,15 @@ public class WatchMgrImpl implements WatchMgr {
                           DisConfigTypeEnum disConfigTypeEnum, String value) throws Exception {
 
         // 新建
-        String monitorPath = makeMonitorPath(disConfigTypeEnum, disConfCommonModel, keyName, value);
+        List<String> monitorPaths = makeMonitorPath(disConfigTypeEnum, disConfCommonModel, keyName, value);
 
-        // 进行监控
-        NodeWatcher nodeWatcher =
-                new NodeWatcher(disconfCoreMgr, monitorPath, keyName, disConfigTypeEnum, new DisconfSysUpdateCallback(),
-                        debug);
-        nodeWatcher.monitorMaster();
+        for(String monitorPath : monitorPaths){
+        	// 进行监控
+        	NodeWatcher nodeWatcher =
+        			new NodeWatcher(disconfCoreMgr, monitorPath, keyName, disConfigTypeEnum, new DisconfSysUpdateCallback(),
+        					debug);
+        	nodeWatcher.monitorMaster();
+        }
     }
 
     @Override

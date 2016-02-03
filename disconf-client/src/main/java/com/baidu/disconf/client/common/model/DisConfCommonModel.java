@@ -1,5 +1,12 @@
 package com.baidu.disconf.client.common.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.collect.Lists;
+
 /**
  * 通用的模型数据，包括 APP，版本，环境，Zookeeper上的URL表示
  *
@@ -16,6 +23,18 @@ public class DisConfCommonModel {
 
     // 环境
     private String env;
+    
+    public List<String> getApps(){
+    	if(StringUtils.isEmpty(app)){
+    		return new ArrayList<String>();
+    	}
+    	String[] apps = app.split(",");
+    	List<String> list = new ArrayList<String>();
+    	for(String appstr:apps){
+    		list.add(appstr);
+    	}
+    	return list;
+    }
 
     public String getApp() {
         return app;
