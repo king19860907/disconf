@@ -11,10 +11,17 @@
 	
 	<bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
 	      destroy-method="destroy">
+	     <!-- 不需要自动reload时可以不配置 
+	    <property name="scanPackage" value="com.majun"/>-->
 	</bean>
 	<bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
 	      init-method="init" destroy-method="destroy">
 	</bean>
+	
+	<!-- 不需要自动reload时可以不配置 
+	<context:component-scan base-package="com.majun"/>-->
+	<!-- 不需要自动reload时可以不配置 
+	<aop:aspectj-autoproxy proxy-target-class="true"/>-->
 
     <bean id="configproperties_disconf"
       class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean">
@@ -25,7 +32,7 @@
 	    </property>
 	</bean>
 	
-	
+	<!-- 需要自动relad的话 class换成 com.baidu.disconf.client.addons.properties.ReloadingPropertyPlaceholderConfigurer -->
 	<bean id="propertyConfigurer"
 	      class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="ignoreResourceNotFound" value="true" />
